@@ -1,6 +1,5 @@
 package io.github.ssy.juc.template.latch;
 
-import com.alibaba.fastjson.JSON;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -51,8 +50,8 @@ public class MergeActionByLatch<T> implements MergeAction {
     boolean b = latchAndData.getCountDownLatch().await(awaitTimeout, TimeUnit.MILLISECONDS);
     if (!b) {
       log.warn("MergeActionByLatch:" + uniqueAction + " ,timeout:" + awaitTimeout);
+      return targetAction.action(uniqueAction);
     }
-
 //    log.warn("latchAndData" + JSON.toJSONString(latchAndData));
     return latchAndData.getResultData().getData();
   }
