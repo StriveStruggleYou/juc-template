@@ -17,6 +17,11 @@ public class LatchAndData<T> {
 
   private String uuid;
 
+  //优化阻塞计数,包括自己
+  private AtomicInteger lockThreadNum;
+
+  private long lockTime;
+
   //要带debug的
 
   public LatchAndData() {
@@ -24,6 +29,8 @@ public class LatchAndData<T> {
     countDownLatch = new CountDownLatch(1);
     resultData = new ResultData<>();
     atomicInteger = new AtomicInteger(0);
+    lockThreadNum = new AtomicInteger(0);
+    lockTime = System.currentTimeMillis();
   }
 
 
@@ -36,6 +43,7 @@ public class LatchAndData<T> {
   }
 
   boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+    lockThreadNum.incrementAndGet();
     return countDownLatch.await(timeout, unit);
   }
 

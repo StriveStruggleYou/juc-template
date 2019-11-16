@@ -14,7 +14,11 @@ public class MergeActionByLatch<T> implements MergeAction {
 
   MergeAction<T> targetAction;
 
+  //同时刻保存
   private ConcurrentHashMap<String, LatchAndData> latchAndDataMap;
+
+  //监控模块不好搞哈哈,改天再设计哈哈，目前很缺监控模块哈哈，超时，中断，阻塞成功，都需要计数
+  //private
 
   private long awaitTimeout;
 
@@ -56,6 +60,11 @@ public class MergeActionByLatch<T> implements MergeAction {
 //    log.warn("latchAndData" + JSON.toJSONString(latchAndData));
     return latchAndData.getData();
   }
+
+  private void remove(LatchAndData latchAndData, String uniqueAction) {
+
+  }
+
 
   @Override
   public String getMergeAction() {
