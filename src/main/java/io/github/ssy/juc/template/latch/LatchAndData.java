@@ -1,5 +1,6 @@
 package io.github.ssy.juc.template.latch;
 
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.Data;
@@ -13,7 +14,13 @@ public class LatchAndData<T> {
 
   private AtomicInteger atomicInteger;
 
+  private String uuid;
+
+
+  //要带debug的
+
   public LatchAndData() {
+    uuid= UUID.randomUUID().toString();
     countDownLatch = new CountDownLatch(1);
     resultData = new ResultData<>();
     atomicInteger = new AtomicInteger(0);

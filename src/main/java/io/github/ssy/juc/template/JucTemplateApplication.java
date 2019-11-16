@@ -8,11 +8,13 @@ public class JucTemplateApplication {
 
   public static void main(String args[]) throws Exception {
     final MergeActionByLatch mergeActionByLatch = new MergeActionByLatch();
+
+
     MergeAction mergeAction = new MergeAction() {
       @Override
       public Object action(String uniqueAction) throws Exception {
-        Thread.sleep(100);
         System.out.println("==========");
+        Thread.sleep(1000);
         return System.currentTimeMillis();
       }
 
@@ -43,6 +45,7 @@ public class JucTemplateApplication {
       public void run() {
         while (true) {
           try {
+            Thread.sleep(1001);
             System.out.println(mergeActionByLatch.action("1111"));
           } catch (Exception e) {
             e.printStackTrace();

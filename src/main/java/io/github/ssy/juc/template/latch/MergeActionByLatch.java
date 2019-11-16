@@ -1,8 +1,6 @@
 package io.github.ssy.juc.template.latch;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,23 +16,16 @@ public class MergeActionByLatch<T> implements MergeAction {
 
   private ConcurrentHashMap<String, LatchAndData> latchAndDataMap;
 
-  private ThreadPoolExecutor executor;
-
   private long awaitTimeout;
 
   public MergeActionByLatch() {
     this.latchAndDataMap = new ConcurrentHashMap();
-    this.executor = new ThreadPoolExecutor(
-      100,
-      Integer.MAX_VALUE,
-      10,
-      TimeUnit.MILLISECONDS,
-      new LinkedBlockingQueue());
     //ms
-    this.awaitTimeout = 500;
+    this.awaitTimeout = 2000;
   }
 
   public T action(String uniqueAction) throws Exception {
+    long start = System.currentTimeMillis();
     LatchAndData<T> latchAndData = latchAndDataMap.get(uniqueAction);
     if (latchAndData == null) {
       latchAndData = new LatchAndData<>();
@@ -43,11 +34,21 @@ public class MergeActionByLatch<T> implements MergeAction {
         latchAndData = otherLatchAndData;
       }
       if (latchAndData.getAtomicInteger().getAndIncrement() == 0) {
-        executor
-          .submit(new ActionTask<T>(latchAndData, targetAction, uniqueAction, latchAndDataMap));
+        try {
+          T result = targetAction.action(uniqueAction);
+          latchAndData.getResultData().setData(result);
+        } catch (Exception e) {
+          log.error("actionTask:" + targetAction.getMergeAction(), e);
+          latchAndData.getResultData().setData(null);
+        } finally {
+          latchAndData.getCountDownLatch().countDown();
+          latchAndDataMap.remove(uniqueAction);
+        }
       }
     }
     boolean b = latchAndData.getCountDownLatch().await(awaitTimeout, TimeUnit.MILLISECONDS);
+    log.warn(Thread.currentThread().getName() + ",cost time:"
+      + (System.currentTimeMillis() - start));
     if (!b) {
       log.warn("MergeActionByLatch:" + uniqueAction + " ,timeout:" + awaitTimeout);
       return targetAction.action(uniqueAction);
