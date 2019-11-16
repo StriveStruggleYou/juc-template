@@ -2,6 +2,7 @@ package io.github.ssy.juc.template.latch;
 
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.Data;
 
@@ -16,13 +17,34 @@ public class LatchAndData<T> {
 
   private String uuid;
 
-
   //要带debug的
 
   public LatchAndData() {
-    uuid= UUID.randomUUID().toString();
+    uuid = UUID.randomUUID().toString();
     countDownLatch = new CountDownLatch(1);
     resultData = new ResultData<>();
     atomicInteger = new AtomicInteger(0);
+  }
+
+
+  public void countDown() {
+    this.countDownLatch.countDown();
+  }
+
+  public int getAndIncrement() {
+    return this.atomicInteger.getAndIncrement();
+  }
+
+  boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+    return countDownLatch.await(timeout, unit);
+  }
+
+  public void setData(T data) {
+    this.resultData.setData(data);
+  }
+
+
+  public T getData() {
+    return this.resultData.getData();
   }
 }

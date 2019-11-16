@@ -33,20 +33,20 @@ public class MergeActionByLatch<T> implements MergeAction {
       if (otherLatchAndData != null) {
         latchAndData = otherLatchAndData;
       }
-      if (latchAndData.getAtomicInteger().getAndIncrement() == 0) {
+      if (latchAndData.getAndIncrement() == 0) {
         try {
           T result = targetAction.action(uniqueAction);
-          latchAndData.getResultData().setData(result);
+          latchAndData.setData(result);
         } catch (Exception e) {
           log.error("actionTask:" + targetAction.getMergeAction(), e);
-          latchAndData.getResultData().setData(null);
+          latchAndData.setData(null);
         } finally {
-          latchAndData.getCountDownLatch().countDown();
+          latchAndData.countDown();
           latchAndDataMap.remove(uniqueAction);
         }
       }
     }
-    boolean b = latchAndData.getCountDownLatch().await(awaitTimeout, TimeUnit.MILLISECONDS);
+    boolean b = latchAndData.await(awaitTimeout, TimeUnit.MILLISECONDS);
     log.warn(Thread.currentThread().getName() + ",cost time:"
       + (System.currentTimeMillis() - start));
     if (!b) {
@@ -54,7 +54,7 @@ public class MergeActionByLatch<T> implements MergeAction {
       return targetAction.action(uniqueAction);
     }
 //    log.warn("latchAndData" + JSON.toJSONString(latchAndData));
-    return latchAndData.getResultData().getData();
+    return latchAndData.getData();
   }
 
   @Override
